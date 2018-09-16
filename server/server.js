@@ -73,12 +73,12 @@ app.post('/todos', (req,res)=>{
 //now GET method
 
 app.get('/todos', (req,res)=>{
-    
+
     ToDoModel.find().then( (doc) => {
-        res.send(doc);
+        res.send({doc});
     }, 
     (err)=>{
-        res.send(400).send(err);
+        res.status(400).send(err);
     }
 
     );
