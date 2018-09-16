@@ -6,15 +6,35 @@ const ToDoModel = require('./../models/todo').ToDoModel;
 
 //to do smoe prep work, we can use beforeEach which would run
 //before every single tc inthis
+
+// beforeEach((done) => {
+//   Todo.remove({}).then(() => {
+//     return Todo.insertMany(todos);
+//   }).then(() => done());
+// });
+
+const todoArray = [ {"TodoName": "Todo1"}, {"TodoName" : "Todo2"}];
 beforeEach((done) => {
     // we can remove all todos if we want by using remove as below
     console.log('before each');
     ToDoModel.remove( {}).then( () =>
     {
-        console.log('cnt' );
-        // console.log(JSON.stringify(ToDoModel.find({}).count()),
-        //      undefined,2);
-        done();
+        
+        //we can add an arry of docs by using insertMany
+        //defined that arry above
+        ToDoModel.insertMany(todoArray).then(
+                (doc) =>
+                {
+                    console.log('inserted');
+                    done();
+                },
+                (err) =>
+                {
+                    //console.log(err);
+                    done(err);
+                }
+        );
+        
     });
   // im just going to display the count
     // ToDoModel.find({}).count().then((count)=> {
@@ -25,7 +45,7 @@ beforeEach((done) => {
 
 //describe works only when called from test script in pkg json
 describe('To do post test', () => {
-    it ('should send nad get teh same text', (done) => 
+    it ('should send n get the same text', (done) => 
     {
         var text = 'Testing this todooooooo'
         request(app). //make a request 
@@ -44,12 +64,14 @@ describe('To do post test', () => {
             }
             //verify the db insert
             ToDoModel.find({TodoName: text}).then(
-                (doc)=> {
-                    console.log ('got it back');
-                    ToDoModel.find({}).count().then((count)=> {
-                        console.log('cnt is '+ count);
+                (doc)=> {                   
+                    
+                    //ToDoModel.find({}).count().then((count)=> {
+                    // });
+                        // console.log('cnt is '+ count);
+                        expect(ToDoModel.length).toBe(3);
                         done();
-                    });
+                    
                     // done(); //ths done gest executed sooner than the above
                     //vallback if put ooutside.so moved to callback
                 },
@@ -84,13 +106,36 @@ describe('To do post test', () => {
             // );
             // //another way andrew
             ToDoModel.find().then( (ToDoModel) =>{
-                expect(ToDoModel.length).toBe(0);
+                expect(ToDoModel.length).toBe(2);
                 done();
-            })
-
-           
-            // );
-        //.catch( (e) => done(e));
+                },
+                (err) => 
+                {
+                    done(err);
+                }
+            )
         });
+    });
+});
+
+describe('testing GET method',() =>
+{
+    it ('should get the todos as expected', (done) => {
+        request(app)
+        .get('/todos')
+        .expect(200)        
+        .expect((res) => {
+            console.log('hihello' + JSON.stringify(res.body,undefined,2));
+            expect(res.body.doc.length).toBe(2);            
+        })
+        //the be.ow could jus be end(done());
+        .end( (err,res) => {
+            if (err){
+              return done(err);
+            }           
+            done();
+        });
+    
+    
     });
 });
